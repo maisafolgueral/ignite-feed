@@ -1,26 +1,45 @@
+import { format, formatDistanceToNow } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
 import styles from "./Post.module.css";
 import { Comment } from "./Comment";
 import { Avatar } from "./Avatar";
+import PropTypes from "prop-types";
 
-export function Post(props) {
-  console.log(props);
+export function Post({ author, publishedAt, content }) {
+  const publishedDateFormatted = format(publishedAt, "d 'de' LLLL 'às' HH:mm'h'", {
+    locale: ptBR
+  })
+
+  const publishedDateRelativeToNow = formatDistanceToNow(publishedAt, {
+    locale: ptBR,
+    addSuffix: true
+  })
+
   return (
     <article className={styles.post}>
       <header>
         <div className={styles.author}>
-          <Avatar src="https://github.com/maisafolgueral.png" />
+          <Avatar src={author.avatarUrl} />
           <div className={styles.authorInfo}>
-            <strong>Maisa Folgueral</strong>
-            <span>Web Developer</span>
+            <strong>{author.name}</strong>
+            <span>{author.role}</span>
           </div>
         </div>
 
-        <time title="02 de abril às 11:20h" dateTime="2024-04-02 11:20:00">
-          Publicado há 1h
+        <time title={publishedDateFormatted} dateTime={publishedAt.toISOString()}>
+          {publishedDateRelativeToNow}
         </time>
       </header>
 
-      <div className={styles.content}></div>
+      <div className={styles.content}>
+        {content.map(line => {
+          if (line.type == 'paragraph') {
+            return <p key={line.id}>{line.content}</p>;
+          } else if (line.type == 'link') {
+            return <p key={line.id}><a href="#">{line.content}</a></p>;
+          }
+        })}
+      </div>
 
       <form className={styles.commentForm}>
         <strong>Deixe seu feedback</strong>
@@ -40,3 +59,13 @@ export function Post(props) {
     </article>
   );
 }
+
+Post.propTypes = {
+  author: PropTypes.shape({
+    avatarUrl: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    role: PropTypes.string.isRequired,
+  }).isRequired,
+  publishedAt: PropTypes.string,
+  content: PropTypes.string,
+};
